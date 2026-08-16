@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RigOps Field Suite — Drilling &amp; Workover Decision Support | Mostafa A. Sobhy</title>
+<meta name="description" content="A field decision workspace for drilling, completion, and workover operations. Live well-control demo, verified calculation layer, and the engineering portfolio behind it.">
+<meta name="author" content="Mostafa Ahmed Sobhy">
+<meta name="theme-color" content="#050d14">
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     BEFORE POSTING TO LINKEDIN — replace BOTH occurrences of
+     https://REPLACE-WITH-YOUR-LIVE-URL
+     with your real address, e.g. https://preview.yourdomain.com
+     LinkedIn will not render a preview image from a relative path.
+     Then run the URL through linkedin.com/post-inspector.
+     Full walkthrough in DEPLOY-GUIDE.md.
+     ═══════════════════════════════════════════════════════════════════ -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RigOps Field Suite">
+<meta property="og:url" content="https://REPLACE-WITH-YOUR-LIVE-URL/">
+<meta property="og:title" content="RigOps Field Suite — field math you can defend">
+<meta property="og:description" content="Live well-control demo. Verified drilling, completion, and workover calculations. Built by Mostafa A. Sobhy, drilling engineer and petroleum data scientist.">
+<meta property="og:image" content="https://REPLACE-WITH-YOUR-LIVE-URL/assets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="RigOps Field Suite — drilling decision workspace">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="RigOps Field Suite — field math you can defend">
+<meta name="twitter:description" content="Live well-control demo and the engineering behind a drilling decision workspace.">
+<meta name="twitter:image" content="https://REPLACE-WITH-YOUR-LIVE-URL/assets/og.jpg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   RigOps Field Suite — teaser build
+   Palette derived from the production app's own tokens,
+   inverted to a night-shift driller's console.
+   ============================================================ */
+:root{
+  --rig-void:#050d14;
+  --rig-deep:#0a1720;
+  --rig-panel:#0e1f2b;
+  --rig-line:#1c3542;
+  --rig-paper:#eef4f0;
+  --rig-muted:#7f9aa6;
+  --rig-lime:#d9ff63;
+  --rig-cyan:#44d6d0;
+  --rig-amber:#ff9a50;
+  --rig-red:#e8564b;
+  --rig-pro:#8f7dff;
+  --rig-spine:64px;
+  --rig-max:1180px;
+  --rig-display:"IBM Plex Sans Condensed","Arial Narrow",sans-serif;
+  --rig-body:"IBM Plex Sans","Segoe UI",Arial,sans-serif;
+  --rig-mono:"IBM Plex Mono","Cascadia Mono",Consolas,monospace;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:var(--rig-void);
+  color:var(--rig-paper);
+  font-family:var(--rig-body);
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+img{max-width:100%;display:block}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--rig-lime);outline-offset:3px;border-radius:2px}
+
+.rig-skip{position:absolute;left:-9999px;top:0;background:var(--rig-lime);color:var(--rig-void);padding:.7rem 1.1rem;z-index:200;font-family:var(--rig-mono);font-size:.8rem}
+.rig-skip:focus{left:1rem;top:1rem}
+
+.rig-shell{width:min(100% - 2.5rem,var(--rig-max));margin-inline:auto}
+
+/* ---------- wellbore spine (signature) ---------- */
+.rig-spine{
+  position:fixed;left:0;top:0;bottom:0;width:var(--rig-spine);
+  z-index:40;pointer-events:none;
+  border-right:1px solid var(--rig-line);
+  background:linear-gradient(180deg,rgba(10,23,32,.92),rgba(5,13,20,.92));
+  backdrop-filter:blur(6px);
+}
+.rig-spine-track{position:absolute;left:50%;top:0;bottom:0;width:2px;transform:translateX(-50%);background:var(--rig-line)}
+.rig-spine-mud{
+  position:absolute;left:50%;top:0;width:6px;height:0;transform:translateX(-50%);
+  background:linear-gradient(180deg,var(--rig-lime),var(--rig-cyan));
+  box-shadow:0 0 14px rgba(217,255,99,.45);
+  border-radius:0 0 3px 3px;
+}
+.rig-spine-bit{
+  position:absolute;left:50%;top:0;width:14px;height:14px;
+  transform:translate(-50%,-50%) rotate(45deg);
+  background:var(--rig-lime);box-shadow:0 0 16px rgba(217,255,99,.75);
+}
+.rig-tick{position:absolute;left:0;width:100%;text-align:center;font-family:var(--rig-mono);font-size:.5rem;letter-spacing:.04em;color:var(--rig-muted)}
+.rig-tick::before{content:"";position:absolute;left:8px;right:8px;top:-5px;height:1px;background:var(--rig-line)}
+.rig-tick-shoe{color:var(--rig-cyan)}
+.rig-tick-shoe::before{background:var(--rig-cyan);opacity:.6}
+.rig-tick-td{color:var(--rig-amber)}
+.rig-tick-td::before{background:var(--rig-amber);opacity:.6}
+
+/* ---------- nav ---------- */
+.rig-nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(5,13,20,.86);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--rig-line);
+  padding-left:var(--rig-spine);
+}
+.rig-nav-in{display:flex;align-items:center;gap:1.4rem;padding:.85rem 0;flex-wrap:wrap}
+.rig-brand{font-family:var(--rig-display);font-weight:700;font-size:1.05rem;letter-spacing:.02em;text-decoration:none;white-space:nowrap}
+.rig-brand span{color:var(--rig-lime)}
+.rig-nav-links{display:flex;gap:1.15rem;margin-left:auto;flex-wrap:wrap}
+.rig-nav-links a{font-family:var(--rig-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--rig-muted);text-decoration:none;transition:color .2s}
+.rig-nav-links a:hover{color:var(--rig-lime)}
+.rig-depth{font-family:var(--rig-mono);font-size:.72rem;color:var(--rig-cyan);letter-spacing:.06em;white-space:nowrap}
+
+/* ---------- generic section ---------- */
+.rig-sec{padding:clamp(4rem,9vw,7.5rem) 0;padding-left:var(--rig-spine);position:relative}
+.rig-eyebrow{font-family:var(--rig-mono);font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;color:var(--rig-lime);margin:0 0 1rem}
+.rig-h2{font-family:var(--rig-display);font-weight:700;font-size:clamp(1.9rem,4.2vw,3rem);line-height:1.05;margin:0 0 .8rem;letter-spacing:-.01em}
+.rig-lede{color:var(--rig-muted);max-width:60ch;margin:0 0 2.6rem;font-size:1.02rem}
+
+/* ---------- hero ---------- */
+.rig-hero{padding:clamp(3.5rem,8vw,6.5rem) 0 clamp(3rem,6vw,5rem);padding-left:var(--rig-spine);position:relative;overflow:hidden}
+.rig-hero::after{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(760px 460px at 78% 12%,rgba(68,214,208,.16),transparent 62%),
+             radial-gradient(620px 420px at 8% 88%,rgba(217,255,99,.10),transparent 66%);
+}
+.rig-hero>*{position:relative;z-index:1}
+.rig-hero-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(2rem,4vw,3.5rem);align-items:center}
+.rig-h1{font-family:var(--rig-display);font-weight:700;font-size:clamp(2.6rem,6.6vw,4.9rem);line-height:.98;margin:0 0 1.2rem;letter-spacing:-.02em}
+.rig-h1 em{font-style:normal;color:var(--rig-lime)}
+.rig-hero p{color:var(--rig-muted);font-size:1.08rem;max-width:52ch;margin:0 0 2rem}
+.rig-cta-row{display:flex;gap:.8rem;flex-wrap:wrap}
+.rig-btn{
+  font-family:var(--rig-mono);font-size:.78rem;letter-spacing:.09em;text-transform:uppercase;
+  padding:.85rem 1.5rem;border-radius:2px;border:1px solid var(--rig-lime);
+  background:var(--rig-lime);color:var(--rig-void);text-decoration:none;cursor:pointer;
+  font-weight:600;transition:transform .18s,box-shadow .18s;display:inline-block;
+}
+.rig-btn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(217,255,99,.26)}
+.rig-btn-ghost{background:transparent;color:var(--rig-paper);border-color:var(--rig-line)}
+.rig-btn-ghost:hover{border-color:var(--rig-cyan);color:var(--rig-cyan);box-shadow:none}
+
+/* hero gauge cluster */
+.rig-console{
+  background:linear-gradient(160deg,var(--rig-panel),var(--rig-deep));
+  border:1px solid var(--rig-line);border-radius:4px;padding:1.4rem;
+  box-shadow:0 30px 70px rgba(0,0,0,.5);
+}
+.rig-console-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;font-family:var(--rig-mono);font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;color:var(--rig-muted)}
+.rig-led{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--rig-lime);margin-right:.45rem;vertical-align:middle;animation:rigPulse 2.1s ease-in-out infinite}
+@keyframes rigPulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(217,255,99,.6)}50%{opacity:.55;box-shadow:0 0 0 6px rgba(217,255,99,0)}}
+.rig-gauges{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}
+.rig-gauge{background:rgba(5,13,20,.62);border:1px solid var(--rig-line);border-radius:3px;padding:.85rem .9rem}
+.rig-gauge-label{font-family:var(--rig-mono);font-size:.58rem;letter-spacing:.13em;text-transform:uppercase;color:var(--rig-muted);display:block;margin-bottom:.3rem}
+.rig-gauge-val{font-family:var(--rig-mono);font-weight:600;font-size:1.5rem;line-height:1.1;color:var(--rig-paper);font-variant-numeric:tabular-nums}
+.rig-gauge-unit{font-family:var(--rig-mono);font-size:.62rem;color:var(--rig-muted);margin-left:.25rem}
+.rig-gauge.is-key .rig-gauge-val{color:var(--rig-lime)}
+.rig-gauge.is-warn .rig-gauge-val{color:var(--rig-amber)}
+
+/* ---------- live demo ---------- */
+.rig-demo-grid{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:1.4rem;align-items:start}
+.rig-panel{background:linear-gradient(160deg,var(--rig-panel),var(--rig-deep));border:1px solid var(--rig-line);border-radius:4px;overflow:hidden}
+.rig-panel-hd{padding:1.1rem 1.3rem;border-bottom:1px solid var(--rig-line);display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap}
+.rig-panel-hd h3{font-family:var(--rig-display);font-weight:600;font-size:1.18rem;margin:0;letter-spacing:.01em}
+.rig-panel-hd span{font-family:var(--rig-mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--rig-muted)}
+.rig-panel-bd{padding:1.3rem}
+
+.rig-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.85rem}
+.rig-field{display:flex;flex-direction:column;gap:.35rem}
+.rig-field.rig-span{grid-column:1/-1}
+.rig-field label{font-family:var(--rig-mono);font-size:.62rem;letter-spacing:.09em;text-transform:uppercase;color:var(--rig-muted);display:flex;justify-content:space-between;gap:.5rem}
+.rig-field label b{color:var(--rig-cyan);font-weight:500}
+.rig-field input{
+  width:100%;background:rgba(5,13,20,.72);border:1px solid var(--rig-line);border-radius:2px;
+  color:var(--rig-paper);font-family:var(--rig-mono);font-size:.95rem;padding:.6rem .7rem;
+  transition:border-color .18s;font-variant-numeric:tabular-nums;
+}
+.rig-field input:focus{border-color:var(--rig-lime);outline:none}
+.rig-field input::-webkit-outer-spin-button,.rig-field input::-webkit-inner-spin-button{opacity:.35}
+
+.rig-results{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.6rem}
+.rig-res{background:rgba(5,13,20,.62);border:1px solid var(--rig-line);border-radius:3px;padding:.8rem .75rem;transition:border-color .25s,background .25s}
+.rig-res-label{font-family:var(--rig-mono);font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--rig-muted);display:block;margin-bottom:.35rem;min-height:2.1em}
+.rig-res-val{font-family:var(--rig-mono);font-weight:600;font-size:1.22rem;color:var(--rig-paper);font-variant-numeric:tabular-nums;display:block}
+.rig-res-unit{font-family:var(--rig-mono);font-size:.55rem;color:var(--rig-muted)}
+.rig-res.is-key{border-color:rgba(217,255,99,.4);background:rgba(217,255,99,.06)}
+.rig-res.is-key .rig-res-val{color:var(--rig-lime)}
+.rig-res.is-stale{opacity:.32}
+
+/* MAASP margin bar */
+.rig-margin{margin-top:1.2rem;padding:1rem;background:rgba(5,13,20,.5);border:1px solid var(--rig-line);border-radius:3px}
+.rig-margin-hd{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--rig-mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--rig-muted);margin-bottom:.6rem}
+.rig-margin-hd b{color:var(--rig-paper);font-weight:600;font-size:.82rem}
+.rig-margin-bar{height:8px;background:rgba(28,53,66,.9);border-radius:4px;overflow:hidden}
+.rig-margin-fill{height:100%;width:0;border-radius:4px;background:linear-gradient(90deg,var(--rig-cyan),var(--rig-lime));transition:width .5s cubic-bezier(.22,1,.36,1),background .4s}
+.rig-margin-fill.is-warn{background:linear-gradient(90deg,var(--rig-amber),var(--rig-red))}
+.rig-margin-note{font-family:var(--rig-mono);font-size:.62rem;color:var(--rig-muted);margin-top:.55rem}
+
+.rig-status{margin-top:1rem;padding:.75rem .95rem;border-radius:3px;font-family:var(--rig-mono);font-size:.7rem;line-height:1.55;border:1px solid rgba(68,214,208,.3);background:rgba(68,214,208,.07);color:var(--rig-cyan)}
+.rig-status.is-warn{border-color:rgba(255,154,80,.42);background:rgba(255,154,80,.09);color:var(--rig-amber)}
+.rig-status span{display:block}
+
+.rig-actions{display:flex;gap:.6rem;margin-top:1.1rem;flex-wrap:wrap}
+.rig-mini{
+  font-family:var(--rig-mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;
+  padding:.6rem 1.05rem;border-radius:2px;border:1px solid var(--rig-line);
+  background:transparent;color:var(--rig-paper);cursor:pointer;transition:border-color .18s,color .18s;
+}
+.rig-mini:hover{border-color:var(--rig-lime);color:var(--rig-lime)}
+.rig-mini[disabled]{opacity:.4;cursor:not-allowed}
+.rig-mini.is-live{border-color:var(--rig-amber);color:var(--rig-amber)}
+
+.rig-safety{
+  margin-top:1.1rem;padding:.8rem .95rem;border-left:2px solid var(--rig-amber);
+  background:rgba(255,154,80,.06);font-size:.83rem;color:var(--rig-muted);line-height:1.55;
+}
+.rig-formula{font-family:var(--rig-mono);font-size:.7rem;color:var(--rig-muted);line-height:1.9;margin-top:1.1rem;padding-top:1rem;border-top:1px dashed var(--rig-line)}
+.rig-formula b{color:var(--rig-cyan);font-weight:500}
+
+/* ---------- suite preview ---------- */
+.rig-suite{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:.85rem}
+.rig-card{
+  background:linear-gradient(160deg,var(--rig-panel),var(--rig-deep));
+  border:1px solid var(--rig-line);border-radius:4px;padding:1.15rem;
+  position:relative;transition:transform .22s,border-color .22s;overflow:hidden;
+}
+.rig-card:hover{transform:translateY(-3px);border-color:rgba(68,214,208,.42)}
+.rig-card h4{font-family:var(--rig-display);font-weight:600;font-size:1.02rem;margin:.55rem 0 .4rem}
+.rig-card p{font-size:.85rem;color:var(--rig-muted);margin:0;line-height:1.55}
+.rig-tag{font-family:var(--rig-mono);font-size:.55rem;letter-spacing:.13em;text-transform:uppercase;padding:.22rem .5rem;border-radius:2px;display:inline-block}
+.rig-tag-free{background:rgba(68,214,208,.14);color:var(--rig-cyan);border:1px solid rgba(68,214,208,.32)}
+.rig-tag-pro{background:rgba(143,125,255,.14);color:var(--rig-pro);border:1px solid rgba(143,125,255,.34)}
+.rig-tag-live{background:var(--rig-lime);color:var(--rig-void);border:1px solid var(--rig-lime);font-weight:600}
+
+
+.rig-card-lock{position:absolute;top:1.1rem;right:1.1rem;font-family:var(--rig-mono);font-size:.85rem;color:var(--rig-line)}
+
+/* ---------- AI product line ---------- */
+.rig-ai{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:1rem}
+.rig-ai-card{
+  background:linear-gradient(160deg,var(--rig-panel),var(--rig-deep));
+  border:1px solid var(--rig-line);border-left:2px solid var(--rig-pro);
+  border-radius:0 4px 4px 0;padding:1.4rem 1.5rem;
+  display:flex;flex-direction:column;transition:transform .22s,border-left-color .22s;
+}
+.rig-ai-card:hover{transform:translateY(-3px);border-left-color:var(--rig-lime)}
+.rig-ai-top{display:flex;align-items:center;justify-content:space-between;gap:.8rem;margin-bottom:.7rem}
+.rig-ai-kind{font-family:var(--rig-mono);font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;color:var(--rig-pro)}
+.rig-ai-status{
+  font-family:var(--rig-mono);font-size:.54rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:.24rem .5rem;border-radius:2px;white-space:nowrap;
+  border:1px solid var(--rig-line);color:var(--rig-muted);
+}
+.rig-ai-status.is-live{border-color:rgba(217,255,99,.4);color:var(--rig-lime)}
+.rig-ai-status.is-live::before{
+  content:"";display:inline-block;width:5px;height:5px;border-radius:50%;
+  background:var(--rig-lime);margin-right:.35rem;vertical-align:middle;
+  animation:rigPulse 2.1s ease-in-out infinite;
+}
+.rig-ai-status.is-research{border-color:rgba(68,214,208,.4);color:var(--rig-cyan)}
+.rig-ai-card h4{font-family:var(--rig-display);font-weight:700;font-size:1.3rem;margin:0 0 .3rem;letter-spacing:-.005em}
+.rig-ai-tag{font-family:var(--rig-mono);font-size:.66rem;color:var(--rig-muted);display:block;margin-bottom:.75rem}
+.rig-ai-card>p{font-size:.88rem;color:var(--rig-muted);margin:0 0 1rem;line-height:1.6}
+.rig-ai-basis{
+  margin-top:auto;padding-top:.9rem;border-top:1px dashed var(--rig-line);
+  font-family:var(--rig-mono);font-size:.64rem;color:var(--rig-muted);line-height:1.7;
+}
+.rig-ai-basis span{color:var(--rig-pro);letter-spacing:.1em;text-transform:uppercase;font-size:.54rem;display:block;margin-bottom:.3rem}
+.rig-ai-basis a{color:var(--rig-cyan);text-decoration:none;border-bottom:1px solid rgba(68,214,208,.3)}
+.rig-ai-basis a:hover{color:var(--rig-lime);border-bottom-color:var(--rig-lime)}
+
+
+/* ---------- profile ---------- */
+.rig-prof{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(2rem,4vw,3.4rem);align-items:start}
+.rig-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem;margin-top:1.8rem}
+.rig-stat{background:rgba(14,31,43,.6);border:1px solid var(--rig-line);border-radius:3px;padding:.95rem}
+.rig-stat b{font-family:var(--rig-mono);font-size:1.6rem;font-weight:600;color:var(--rig-lime);display:block;line-height:1.1;font-variant-numeric:tabular-nums}
+.rig-stat span{font-family:var(--rig-mono);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--rig-muted);display:block;margin-top:.35rem}
+
+.rig-tl{list-style:none;margin:0;padding:0;position:relative}
+.rig-tl::before{content:"";position:absolute;left:5px;top:8px;bottom:8px;width:1px;background:var(--rig-line)}
+.rig-tl li{position:relative;padding:0 0 1.7rem 1.85rem}
+.rig-tl li::before{content:"";position:absolute;left:0;top:7px;width:11px;height:11px;border-radius:50%;background:var(--rig-void);border:2px solid var(--rig-cyan)}
+.rig-tl li:first-child::before{border-color:var(--rig-lime);background:var(--rig-lime)}
+.rig-tl time{font-family:var(--rig-mono);font-size:.6rem;letter-spacing:.11em;text-transform:uppercase;color:var(--rig-muted);display:block;margin-bottom:.3rem}
+.rig-tl h4{font-family:var(--rig-display);font-weight:600;font-size:1.05rem;margin:0 0 .15rem}
+.rig-tl strong{display:block;font-family:var(--rig-mono);font-size:.72rem;color:var(--rig-cyan);font-weight:500;margin-bottom:.45rem}
+.rig-tl p{margin:0;font-size:.88rem;color:var(--rig-muted);line-height:1.6}
+
+/* per-role metric strip */
+.rig-metrics{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.85rem}
+.rig-metric{
+  font-family:var(--rig-mono);font-size:.62rem;letter-spacing:.04em;
+  border:1px solid var(--rig-line);border-radius:2px;padding:.34rem .55rem;
+  color:var(--rig-muted);display:inline-flex;align-items:baseline;gap:.35rem;
+  background:rgba(5,13,20,.45);
+}
+.rig-metric b{color:var(--rig-lime);font-weight:600;font-size:.82rem;font-variant-numeric:tabular-nums}
+
+/* completion-type chips inside a role */
+.rig-subhead{
+  font-family:var(--rig-mono);font-size:.58rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--rig-cyan);margin:.95rem 0 .45rem;display:block;
+}
+.rig-chips-sm{display:flex;flex-wrap:wrap;gap:.32rem}
+.rig-chip-sm{font-family:var(--rig-mono);font-size:.62rem;padding:.26rem .5rem;border:1px solid var(--rig-line);border-radius:2px;color:var(--rig-muted)}
+
+.rig-skills{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1.2rem;margin-top:1rem}
+.rig-skillgroup h4{font-family:var(--rig-mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--rig-lime);margin:0 0 .8rem}
+.rig-chips{display:flex;flex-wrap:wrap;gap:.4rem}
+.rig-chip{font-family:var(--rig-mono);font-size:.68rem;padding:.32rem .62rem;border:1px solid var(--rig-line);border-radius:2px;color:var(--rig-muted);transition:border-color .18s,color .18s}
+.rig-chip:hover{border-color:var(--rig-cyan);color:var(--rig-cyan)}
+
+/* ---------- research ---------- */
+.rig-pubs{list-style:none;margin:0;padding:0;display:grid;gap:.8rem}
+.rig-pub{
+  display:block;text-decoration:none;background:linear-gradient(160deg,var(--rig-panel),var(--rig-deep));
+  border:1px solid var(--rig-line);border-left:2px solid var(--rig-cyan);
+  border-radius:0 4px 4px 0;padding:1.2rem 1.35rem;transition:transform .2s,border-left-color .2s;
+}
+.rig-pub:hover{transform:translateX(4px);border-left-color:var(--rig-lime)}
+.rig-pub-meta{font-family:var(--rig-mono);font-size:.6rem;letter-spacing:.11em;text-transform:uppercase;color:var(--rig-lime);display:block;margin-bottom:.45rem}
+.rig-pub h4{font-family:var(--rig-display);font-weight:600;font-size:1.06rem;margin:0 0 .35rem;line-height:1.25}
+.rig-pub p{margin:0;font-size:.84rem;color:var(--rig-muted)}
+.rig-pub-authors{font-family:var(--rig-mono);font-size:.7rem;color:var(--rig-muted);margin-top:.5rem}
+.rig-pub-authors b{color:var(--rig-paper);font-weight:500}
+
+.rig-certs{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:.7rem;margin-top:1.2rem}
+.rig-cert{background:rgba(14,31,43,.55);border:1px solid var(--rig-line);border-radius:3px;padding:.9rem}
+.rig-cert b{display:block;font-size:.9rem;margin-bottom:.2rem;font-weight:500}
+.rig-cert span{font-family:var(--rig-mono);font-size:.62rem;color:var(--rig-muted)}
+
+/* ---------- contact ---------- */
+.rig-contact{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:.8rem;margin-top:1.6rem}
+.rig-link{
+  display:block;text-decoration:none;padding:1.1rem 1.2rem;border-radius:3px;
+  background:rgba(14,31,43,.6);border:1px solid var(--rig-line);transition:border-color .2s,transform .2s;
+}
+.rig-link:hover{border-color:var(--rig-lime);transform:translateY(-2px)}
+.rig-link span{font-family:var(--rig-mono);font-size:.58rem;letter-spacing:.13em;text-transform:uppercase;color:var(--rig-muted);display:block;margin-bottom:.3rem}
+.rig-link b{font-weight:500;font-size:.92rem;word-break:break-word}
+
+.rig-foot{padding:2.6rem 0;padding-left:var(--rig-spine);border-top:1px solid var(--rig-line);color:var(--rig-muted);font-size:.82rem}
+.rig-foot-in{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center}
+.rig-foot a{color:var(--rig-cyan);text-decoration:none}
+
+.rig-disclaimer{
+  margin-top:2.4rem;padding:1.15rem 1.3rem;border:1px solid rgba(232,86,75,.3);
+  background:rgba(232,86,75,.06);border-radius:3px;font-size:.83rem;color:var(--rig-muted);line-height:1.65;
+}
+.rig-disclaimer b{color:var(--rig-red);font-family:var(--rig-mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:.45rem}
+
+/* ---------- reveal animation ---------- */
+.rig-rev{opacity:0;transform:translateY(26px);transition:opacity .75s cubic-bezier(.22,1,.36,1),transform .75s cubic-bezier(.22,1,.36,1)}
+.rig-rev.is-in{opacity:1;transform:none}
+
+/* ---------- responsive ---------- */
+@media (max-width:960px){
+  .rig-hero-grid,.rig-demo-grid,.rig-prof{grid-template-columns:1fr}
+  .rig-results{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:640px){
+  :root{--rig-spine:34px}
+  .rig-tick{font-size:.42rem}
+  .rig-fields{grid-template-columns:1fr}
+  .rig-gauges{grid-template-columns:1fr}
+  .rig-nav-links{display:none}
+  .rig-shell{width:min(100% - 1.6rem,var(--rig-max))}
+}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+  .rig-rev{opacity:1;transform:none}
+}
+
+@media print{
+  .rig-spine,.rig-nav,.rig-actions{display:none}
+  body{background:#fff;color:#000}
+  .rig-sec,.rig-hero,.rig-foot{padding-left:0}
+}
+</style>
+</head>
+<body>
+<a class="rig-skip" href="#demo">Skip to the live demo</a>
+
+
+<!-- wellbore spine -->
+<aside class="rig-spine" aria-hidden="true">
+  <div class="rig-spine-track"></div>
+  <div class="rig-spine-mud" id="spine-mud"></div>
+  <div class="rig-spine-bit" id="spine-bit"></div>
+  <div class="rig-tick" style="top:6%">0 ft</div>
+  <div class="rig-tick" style="top:28%">3,000</div>
+  <div class="rig-tick rig-tick-shoe" style="top:52%">SHOE<br>6,000</div>
+  <div class="rig-tick" style="top:74%">9,000</div>
+  <div class="rig-tick rig-tick-td" style="top:94%">TD<br>11,550</div>
+</aside>
+
+<nav class="rig-nav">
+  <div class="rig-shell rig-nav-in">
+    <a class="rig-brand" href="#top">RIGOPS<span>/</span>FIELD SUITE</a>
+    <div class="rig-nav-links">
+      <a href="#demo">Live demo</a>
+      <a href="#suite">The suite</a>
+      <a href="#ai">AI products</a>
+      <a href="#engineer">Engineer</a>
+      <a href="#research">Research</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <div class="rig-depth" id="depth-readout">BIT @ 0 ft MD</div>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="rig-hero" id="top">
+  <div class="rig-shell rig-hero-grid">
+    <div>
+      <p class="rig-eyebrow">Drilling · Completion · Workover</p>
+      <h1 class="rig-h1">Field math you can <em>defend</em>.</h1>
+      <p>
+        RigOps is a decision workspace for the people who actually run the well — an auditable
+        calculation layer that shows its formulas, states its assumptions, and refuses to give
+        you a number it cannot stand behind.
+      </p>
+      <p style="font-size:.92rem;margin-bottom:2rem">
+        This page is a public preview. The well-control screen below is fully live — change any
+        input and watch every dependent value recompute.
+      </p>
+      <div class="rig-cta-row">
+        <a class="rig-btn" href="#demo">Run the live demo</a>
+        <a class="rig-btn rig-btn-ghost" href="#ai">See the AI products</a>
+      </div>
+    </div>
+
+    <div class="rig-console">
+      <div class="rig-console-top">
+        <span><span class="rig-led"></span>Shut in · monitoring</span>
+        <span id="console-clock">--:--:--</span>
+      </div>
+      <div class="rig-gauges">
+        <div class="rig-gauge">
+          <span class="rig-gauge-label">Hydrostatic</span>
+          <span class="rig-gauge-val" data-count="6306">0</span><span class="rig-gauge-unit">psi</span>
+        </div>
+        <div class="rig-gauge is-key">
+          <span class="rig-gauge-label">Kill mud weight</span>
+          <span class="rig-gauge-val" data-count="10.90" data-dec="2">0</span><span class="rig-gauge-unit">ppg</span>
+        </div>
+        <div class="rig-gauge">
+          <span class="rig-gauge-label">Static BHP</span>
+          <span class="rig-gauge-val" data-count="6546">0</span><span class="rig-gauge-unit">psi</span>
+        </div>
+        <div class="rig-gauge is-warn">
+          <span class="rig-gauge-label">Initial MAASP</span>
+          <span class="rig-gauge-val" data-count="1154">0</span><span class="rig-gauge-unit">psi</span>
+        </div>
+      </div>
+      <p style="font-family:var(--rig-mono);font-size:.6rem;color:var(--rig-muted);margin:1rem 0 0;letter-spacing:.05em">
+        WORKED EXAMPLE · 10.5 PPG · 11,550 FT TVD · SIDPP 240 PSI
+      </p>
+    </div>
+  </div>
+</header>
+
+<!-- ============ LIVE DEMO ============ -->
+<section class="rig-sec rig-rev" id="demo">
+  <div class="rig-shell">
+    <p class="rig-eyebrow">Live calculator · 01 of 11</p>
+    <h2 class="rig-h2">Well-control quick math</h2>
+    <p class="rig-lede">
+      The one calculator running at full fidelity in this preview. Every field is editable and
+      every output recomputes on input. Press <b style="color:var(--rig-lime)">Play kick scenario</b>
+      to watch shut-in pressure climb and the MAASP margin close.
+    </p>
+
+    <div class="rig-demo-grid">
+      <form class="rig-panel" id="wc-form" autocomplete="off">
+        <div class="rig-panel-hd">
+          <h3>Pressure inputs</h3><span>Editable</span>
+        </div>
+        <div class="rig-panel-bd">
+          <div class="rig-fields">
+            <div class="rig-field">
+              <label for="wc-mw">Current MW <b>ppg</b></label>
+              <input id="wc-mw" type="number" min="0" step="0.1" value="10.5">
+            </div>
+            <div class="rig-field">
+              <label for="wc-tvd">Well TVD <b>ft</b></label>
+              <input id="wc-tvd" type="number" min="0" step="10" value="11550">
+            </div>
+            <div class="rig-field">
+              <label for="wc-sidpp">SIDPP <b>psi</b></label>
+              <input id="wc-sidpp" type="number" min="0" step="10" value="240">
+            </div>
+            <div class="rig-field">
+              <label for="wc-shoe">Shoe TVD <b>ft</b></label>
+              <input id="wc-shoe" type="number" min="0" step="10" value="6000">
+            </div>
+            <div class="rig-field rig-span">
+              <label for="wc-maxmw">Max allowable MW from LOT/FIT <b>ppg</b></label>
+              <input id="wc-maxmw" type="number" min="0" step="0.1" value="14.2">
+            </div>
+            <div class="rig-field">
+              <label for="wc-scr">Friction at KRP <b>psi</b></label>
+              <input id="wc-scr" type="number" min="0" step="10" value="500">
+            </div>
+            <div class="rig-field">
+              <label for="wc-apl">Annular loss <b>psi</b></label>
+              <input id="wc-apl" type="number" min="0" step="10" value="250">
+            </div>
+          </div>
+
+          <div class="rig-formula">
+            <b>HP</b> = 0.052 × MW × TVD<br>
+            <b>KMW</b> = MW + SIDPP ÷ (0.052 × TVD)<br>
+            <b>ICP</b> = friction + SIDPP<br>
+            <b>FCP</b> = (KMW ÷ MW) × friction<br>
+            <b>MAASP</b> = (max MW − MW) × 0.052 × shoe TVD
+          </div>
+        </div>
+      </form>
+
+      <section class="rig-panel" aria-live="polite">
+        <div class="rig-panel-hd">
+          <h3>Pressure dashboard</h3><span id="wc-mode">Live</span>
+        </div>
+        <div class="rig-panel-bd">
+          <div class="rig-results" id="wc-results">
+            <div class="rig-res"><span class="rig-res-label">Hydrostatic</span><span class="rig-res-val" id="r-hp">—</span><span class="rig-res-unit">psi</span></div>
+            <div class="rig-res is-key"><span class="rig-res-label">Kill mud weight</span><span class="rig-res-val" id="r-kmw">—</span><span class="rig-res-unit">ppg</span></div>
+            <div class="rig-res"><span class="rig-res-label">Static BHP</span><span class="rig-res-val" id="r-sbhp">—</span><span class="rig-res-unit">psi</span></div>
+            <div class="rig-res"><span class="rig-res-label">Dynamic BHP</span><span class="rig-res-val" id="r-dbhp">—</span><span class="rig-res-unit">psi</span></div>
+            <div class="rig-res"><span class="rig-res-label">Initial MAASP</span><span class="rig-res-val" id="r-imaasp">—</span><span class="rig-res-unit">psi</span></div>
+            <div class="rig-res"><span class="rig-res-label">Final MAASP</span><span class="rig-res-val" id="r-fmaasp">—</span><span class="rig-res-unit">psi</span></div>
+            <div class="rig-res"><span class="rig-res-label">ICP</span><span class="rig-res-val" id="r-icp">—</span><span class="rig-res-unit">psi</span></div>
+            <div class="rig-res"><span class="rig-res-label">FCP</span><span class="rig-res-val" id="r-fcp">—</span><span class="rig-res-unit">psi</span></div>
+          </div>
+
+          <div class="rig-margin">
+            <div class="rig-margin-hd">
+              <span>MAASP margin remaining</span>
+              <b id="margin-pct">—</b>
+            </div>
+            <div class="rig-margin-bar"><div class="rig-margin-fill" id="margin-fill"></div></div>
+            <p class="rig-margin-note" id="margin-note">Final MAASP as a fraction of initial MAASP.</p>
+          </div>
+
+          <div class="rig-status" id="wc-status">Enter inputs to calculate.</div>
+
+          <div class="rig-actions">
+            <button class="rig-mini" type="button" id="btn-play">▶ Play kick scenario</button>
+            <button class="rig-mini" type="button" id="btn-copy">Copy summary</button>
+            <button class="rig-mini" type="button" id="btn-reset">Reset</button>
+          </div>
+
+          <p class="rig-safety">
+            Use the approved kill sheet and shut-in procedure. This screen is decision support,
+            not a well-control procedure, and never the sole basis for a well-control action.
+          </p>
+        </div>
+      </section>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SUITE ============ -->
+<section class="rig-sec rig-rev" id="suite">
+  <div class="rig-shell">
+    <p class="rig-eyebrow">What the full suite covers</p>
+    <h2 class="rig-h2">Eleven field calculators.<br>Seven decision documents.</h2>
+    <p class="rig-lede">
+      The complete workspace runs the whole set, each verified against supplied engineering
+      workbooks and covered by an automated formula test suite. Only the well-control screen
+      computes in this public preview.
+    </p>
+
+    <div class="rig-suite">
+      <div class="rig-card">
+        <span class="rig-tag rig-tag-live">Live now</span>
+        <h4>Well-control quick math</h4>
+        <p>Hydrostatic, kill mud weight, MAASP, ICP and FCP on one auditable screen.</p>
+      </div>
+      <div class="rig-card"><span class="rig-card-lock">▲</span>
+        <span class="rig-tag rig-tag-free">Field free</span>
+        <h4>Capacity &amp; displacement</h4>
+        <p>String, annular and metal-displacement volumes with strokes and circulating time.</p>
+      </div>
+      <div class="rig-card"><span class="rig-card-lock">▲</span>
+        <span class="rig-tag rig-tag-free">Field free</span>
+        <h4>Balanced salt pill</h4>
+        <p>Pill height tubing-in and tubing-out, spacer behaviour and final displacement.</p>
+      </div>
+      <div class="rig-card"><span class="rig-card-lock">▲</span>
+        <span class="rig-tag rig-tag-free">Field free</span>
+        <h4>Drill-string design</h4>
+        <p>Buoyed weight by segment, governing tensile limit and allowable overpull envelope.</p>
+      </div>
+      <div class="rig-card"><span class="rig-card-lock">▲</span>
+        <span class="rig-tag rig-tag-free">Field free</span>
+        <h4>Fishing &amp; pull envelope</h4>
+        <p>Governing weak point, safe overpull, elastic stretch and grapple selection.</p>
+      </div>
+      <div class="rig-card"><span class="rig-card-lock">▲</span>
+        <span class="rig-tag rig-tag-free">Field free</span>
+        <h4>Cement squeeze</h4>
+        <p>Plug volume, sack count, mix water, spacer and net displacement after losses.</p>
+      </div>
+      <div class="rig-card"><span class="rig-card-lock">▲</span>
+        <span class="rig-tag rig-tag-free">Field free</span>
+        <h4>String space-out</h4>
+        <p>Effective joint length, target pup requirement and best-fit pup combination.</p>
+      </div>
+      <div class="rig-card"><span class="rig-card-lock">▲</span>
+        <span class="rig-tag rig-tag-free">Field free</span>
+        <h4>Break-circulation schedule</h4>
+        <p>Stop-by-stop volumes, depths, joint and stand counts for the trip in.</p>
+      </div>
+      <div class="rig-card"><span class="rig-card-lock">▲</span>
+        <span class="rig-tag rig-tag-free">Field free</span>
+        <h4>Tripping performance KPI</h4>
+        <p>Actual rate against approved benchmark, variance and projected trip time.</p>
+      </div>
+      <div class="rig-card"><span class="rig-card-lock">▲</span>
+        <span class="rig-tag rig-tag-free">Field free</span>
+        <h4>Silo capacity</h4>
+        <p>Cylinder and cone volume with bulk density converted to weight and tonnage.</p>
+      </div>
+      <div class="rig-card"><span class="rig-card-lock">▲</span>
+        <span class="rig-tag rig-tag-free">Field free</span>
+        <h4>Animated well schematic</h4>
+        <p>Current and final state schematics rendered from the entered string and hole data.</p>
+      </div>
+      <div class="rig-card"><span class="rig-card-lock">▲</span>
+        <span class="rig-tag rig-tag-pro">Pro</span>
+        <h4>Operations co-pilot</h4>
+        <p>Expert routing that points to the right verified calculator and the inputs to confirm.</p>
+      </div>
+      <div class="rig-card"><span class="rig-card-lock">▲</span>
+        <span class="rig-tag rig-tag-pro">Pro</span>
+        <h4>Document readiness screen</h4>
+        <p>PDF, DOCX and XLSX evidence-gap screening parsed locally in the browser.</p>
+      </div>
+      <div class="rig-card"><span class="rig-card-lock">▲</span>
+        <span class="rig-tag rig-tag-pro">Pro</span>
+        <h4>Six-day lookahead</h4>
+        <p>Operation sequence, durations, logistics lead time and next-well readiness.</p>
+      </div>
+      <div class="rig-card"><span class="rig-card-lock">▲</span>
+        <span class="rig-tag rig-tag-pro">Pro</span>
+        <h4>Handover &amp; incident memos</h4>
+        <p>DSV handovers, rig-move notices and final memos as print-ready reports.</p>
+      </div>
+    </div>
+
+    <div class="rig-disclaimer">
+      <b>Read before use</b>
+      All defaults shown here are worked examples. RigOps is not an approved operating program,
+      well-control procedure, API certification, or safety approval. Use verified current-well
+      data and obtain responsible engineering and supervisory approval before any field
+      application.
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ AI PRODUCT LINE ============ -->
+<section class="rig-sec rig-rev" id="ai">
+  <div class="rig-shell">
+    <p class="rig-eyebrow">Applied AI · product line</p>
+    <h2 class="rig-h2">Four AI products,<br>each grounded in published work.</h2>
+    <p class="rig-lede">
+      Every model here comes out of field data and peer-reviewed research rather than a generic
+      forecasting library. Where a product has a paper behind it, the paper is linked.
+    </p>
+
+    <div class="rig-ai">
+
+      <article class="rig-ai-card">
+        <div class="rig-ai-top">
+          <span class="rig-ai-kind">Conversational</span>
+          <span class="rig-ai-status is-live">Live in RigOps Pro</span>
+        </div>
+        <h4>Drilling Co-pilot</h4>
+        <span class="rig-ai-tag">Rig-site question answering</span>
+        <p>
+          A chat assistant for operational decisions on the rig floor. It routes a question to
+          the right verified calculator, names the inputs that must be confirmed first, and
+          declines to produce a number it cannot show working for — the calculation always comes
+          from the audited engine, never from the model.
+        </p>
+        <div class="rig-ai-basis">
+          <span>Built on</span>
+          The RigOps Field Suite calculation layer, covered by an automated formula test suite.
+        </div>
+      </article>
+
+      <article class="rig-ai-card">
+        <div class="rig-ai-top">
+          <span class="rig-ai-kind">Analytics</span>
+          <span class="rig-ai-status">In development</span>
+        </div>
+        <h4>Drilling Engineer Suite</h4>
+        <span class="rig-ai-tag">Offset study &amp; history analysis</span>
+        <p>
+          Surfaces comparable offset wells for a planned trajectory, then reads their drilling
+          history for performance trends, recurring trouble zones and non-productive time
+          patterns — so the next well programme starts from what the field has already learned
+          rather than from a blank page.
+        </p>
+        <div class="rig-ai-basis">
+          <span>Built on</span>
+          Offset analysis, trajectory modelling and drilling-KPI practice with Petrel, Compass
+          and WellView across Norpetco and Khalda operations.
+        </div>
+      </article>
+
+      <article class="rig-ai-card">
+        <div class="rig-ai-top">
+          <span class="rig-ai-kind">Hybrid physics + ML</span>
+          <span class="rig-ai-status is-research">Published research</span>
+        </div>
+        <h4>Virtual Flow Meter</h4>
+        <span class="rig-ai-tag">VFM for ESP-lifted wells</span>
+        <p>
+          Estimates production rate without a physical multiphase meter by combining pump
+          physics with a learned correction. Built to survive the move from single-well
+          troubleshooting to robust field-wide deployment, which is where most virtual metering
+          work breaks down.
+        </p>
+        <div class="rig-ai-basis">
+          <span>Built on</span>
+          <a href="https://scholar.google.com.eg/citations?view_op=view_citation&amp;hl=en&amp;user=YRDfA6MAAAAJ&amp;citation_for_view=YRDfA6MAAAAJ:Tyk-4Ss8FVUC" target="_blank" rel="noopener">A Hybrid Physics-ML Framework for Virtual Flow Metering in ESP-Lifted Oil Fields</a>
+        </div>
+      </article>
+
+      <article class="rig-ai-card">
+        <div class="rig-ai-top">
+          <span class="rig-ai-kind">Predictive reliability</span>
+          <span class="rig-ai-status is-research">Published research</span>
+        </div>
+        <h4>ESP Failure Prediction</h4>
+        <span class="rig-ai-tag">Run life &amp; failure-type framework</span>
+        <p>
+          Two problems in one model: how long the pump has left, and what is going to take it
+          out. Run life is estimated with a neural network trained on ESP databases, workover
+          records and DIFA reports; failure mode and root cause are separated through the
+          two-step IFMRC classification rather than conflated as they usually are.
+        </p>
+        <div class="rig-ai-basis">
+          <span>Built on</span>
+          <a href="https://doi.org/10.3390/en18153943" target="_blank" rel="noopener">Dual-Level ESP Failure Classification — Energies 2025</a>
+          and
+          <a href="https://fount.aucegypt.edu/cgi/viewcontent.cgi?article=3662&amp;context=etds" target="_blank" rel="noopener">the ANN run-life thesis</a>,
+          grounded in ESP field operations at Qarun.
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ ENGINEER ============ -->
+<section class="rig-sec rig-rev" id="engineer">
+  <div class="rig-shell">
+    <p class="rig-eyebrow">Designed &amp; engineered by</p>
+    <h2 class="rig-h2">Mostafa Ahmed Sobhy</h2>
+    <p class="rig-lede">
+      Drilling, completion and workover engineer combining more than eight years of operational
+      experience with machine learning, data analytics, and digital oilfield transformation.
+    </p>
+
+    <div class="rig-prof">
+      <div>
+        <div class="rig-stats">
+          <div class="rig-stat"><b data-count="8" data-suffix="+">0</b><span>Years in operations</span></div>
+          <div class="rig-stat"><b data-count="4.00" data-dec="2">0</b><span>M.Sc. GPA at AUC</span></div>
+          <div class="rig-stat"><b data-count="5">0</b><span>Research publications</span></div>
+          <div class="rig-stat"><b data-count="65" data-suffix="+">0</b><span>Wells drilled, completed &amp; worked over</span></div>
+        </div>
+
+        <div class="rig-skills" style="margin-top:2.2rem">
+          <div class="rig-skillgroup">
+            <h4>Petroleum engineering</h4>
+            <div class="rig-chips">
+              <span class="rig-chip">Drilling &amp; completion</span>
+              <span class="rig-chip">Workover</span>
+              <span class="rig-chip">Artificial lift</span>
+              <span class="rig-chip">ESP diagnostics</span>
+              <span class="rig-chip">Fishing &amp; intervention</span>
+              <span class="rig-chip">HPHT</span>
+              <span class="rig-chip">Directional</span>
+              <span class="rig-chip">MPD planning</span>
+              <span class="rig-chip">WellView</span>
+              <span class="rig-chip">Petrel &amp; Compass</span>
+            </div>
+          </div>
+          <div class="rig-skillgroup">
+            <h4>Data science &amp; AI</h4>
+            <div class="rig-chips">
+              <span class="rig-chip">Python</span>
+              <span class="rig-chip">Machine learning</span>
+              <span class="rig-chip">ANN, CNN &amp; LSTM</span>
+              <span class="rig-chip">Predictive analytics</span>
+              <span class="rig-chip">R</span>
+              <span class="rig-chip">MATLAB</span>
+            </div>
+          </div>
+          <div class="rig-skillgroup">
+            <h4>Analytics &amp; leadership</h4>
+            <div class="rig-chips">
+              <span class="rig-chip">Power BI</span>
+              <span class="rig-chip">Tableau</span>
+              <span class="rig-chip">Technical sales</span>
+              <span class="rig-chip">Market analysis</span>
+              <span class="rig-chip">Public policy</span>
+              <span class="rig-chip">HSE standards</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="font-family:var(--rig-display);font-size:1.15rem;margin:0 0 1.2rem;letter-spacing:.02em">Experience</h3>
+        <ul class="rig-tl">
+          <li>
+            <time>Mar 2023 — Present</time>
+            <h4>Drilling, Completion &amp; Workover Engineer</h4>
+            <strong>Khalda Petroleum Company · Apache joint venture</strong>
+            <p>Supervises directional, HPHT, exploration, re-entry, completion and workover operations from planning through delivery, across multiple drilling and workover rigs. Uses real-time parameters and WellView to support performance and decision quality.</p>
+            <div class="rig-metrics">
+              <span class="rig-metric"><b>21,000</b>ft deepest TD</span>
+              <span class="rig-metric"><b>15+</b>wells drilled &amp; delivered</span>
+              <span class="rig-metric"><b>50+</b>wells completed &amp; worked over</span>
+            </div>
+            <span class="rig-subhead">Well profiles delivered</span>
+            <div class="rig-chips-sm">
+              <span class="rig-chip-sm">Vertical</span>
+              <span class="rig-chip-sm">Directional</span>
+              <span class="rig-chip-sm">Sidetrack &amp; re-entry</span>
+              <span class="rig-chip-sm">HPHT</span>
+              <span class="rig-chip-sm">Exploration &amp; appraisal</span>
+              <span class="rig-chip-sm">Development</span>
+            </div>
+            <span class="rig-subhead">Completion systems engineered</span>
+            <div class="rig-chips-sm">
+              <span class="rig-chip-sm">Natural flow</span>
+              <span class="rig-chip-sm">ESP</span>
+              <span class="rig-chip-sm">Gas lift</span>
+              <span class="rig-chip-sm">Sucker rod pump</span>
+              <span class="rig-chip-sm">Injector</span>
+              <span class="rig-chip-sm">Straddle packer</span>
+              <span class="rig-chip-sm">Permanent packer &amp; seal assembly</span>
+              <span class="rig-chip-sm">Gas-well completion</span>
+            </div>
+            <span class="rig-subhead">Workover &amp; intervention scope</span>
+            <div class="rig-chips-sm">
+              <span class="rig-chip-sm">Fishing</span>
+              <span class="rig-chip-sm">Taper mill</span>
+              <span class="rig-chip-sm">Scraper &amp; polish runs</span>
+              <span class="rig-chip-sm">Clean-out runs</span>
+              <span class="rig-chip-sm">Bullhead kill</span>
+              <span class="rig-chip-sm">Cement bailer</span>
+              <span class="rig-chip-sm">Cement squeeze &amp; capping</span>
+              <span class="rig-chip-sm">Bridge plug setting</span>
+              <span class="rig-chip-sm">On-off tool</span>
+              <span class="rig-chip-sm">Packer unset &amp; retrieval</span>
+              <span class="rig-chip-sm">TCP — shoot &amp; drop / shoot &amp; stay</span>
+              <span class="rig-chip-sm">Casing guns</span>
+              <span class="rig-chip-sm">Coiled tubing</span>
+              <span class="rig-chip-sm">CBL &amp; correlation logging</span>
+              <span class="rig-chip-sm">Wellhead change-out (RTTS &amp; storm valve)</span>
+              <span class="rig-chip-sm">Tubing puncher</span>
+              <span class="rig-chip-sm">Frac</span>
+              <span class="rig-chip-sm">Well testing</span>
+              <span class="rig-chip-sm">ESP replacement &amp; re-entry</span>
+            </div>
+          </li>
+          <li>
+            <time>Dec 2019 — Mar 2023</time>
+            <h4>Drilling &amp; Completion Supervisor / Engineer · Office-based Drilling Engineer</h4>
+            <strong>Norpetco joint venture · Cheiron</strong>
+            <p>Split between rig-site supervision and office-based drilling engineering. Managed four rigs — two drilling and two workover — and carried five wells through the full cycle from drilling to production. Optimised trajectory models and drilling-performance KPIs using Petrel and Compass, with predictive offset analysis and managed-pressure-drilling planning to reduce downhole risk.</p>
+            <div class="rig-metrics">
+              <span class="rig-metric"><b>5</b>wells, spud to production</span>
+              <span class="rig-metric"><b>4</b>rigs managed — 2 drilling, 2 workover</span>
+              <span class="rig-metric"><b>3+</b>yrs field &amp; office</span>
+            </div>
+          </li>
+          <li>
+            <time>Sep 2018 — Dec 2019</time>
+            <h4>Field Engineer — ESP Team</h4>
+            <strong>Qarun Petroleum Company · Qarun Base and Karama field</strong>
+            <p>Field engineering on the electrical submersible pump team, supporting an installed base of more than three thousand ESPs. Witnessed installation and pull operations, tracked run life and failure patterns, troubleshot surface and downhole faults, and contributed to DIFA teardown investigations — the operational grounding behind the ESP reliability research that followed.</p>
+            <div class="rig-metrics">
+              <span class="rig-metric"><b>3,000+</b>ESP installed base</span>
+              <span class="rig-metric"><b>100</b>installations witnessed</span>
+              <span class="rig-metric"><b>10</b>DIFA &amp; failure investigations</span>
+            </div>
+          </li>
+        </ul>
+
+        <h3 style="font-family:var(--rig-display);font-size:1.15rem;margin:1.8rem 0 1.2rem;letter-spacing:.02em">Education</h3>
+        <ul class="rig-tl">
+          <li>
+            <time>2021 — 2025</time>
+            <h4>M.Sc. Petroleum Engineering — GPA 4.0 / 4.0</h4>
+            <strong>The American University in Cairo</strong>
+            <p>Thesis: Detecting Electrical Submersible Pump (ESP) Failures and Estimating Run Life Using Artificial Neural Networks. Graduate Student Association President, Faculty Senate University Senator, and Graduate Advisory Council member.</p>
+          </li>
+          <li>
+            <time>2013 — 2018</time>
+            <h4>B.Sc. Petroleum Engineering — GPA 3.67, ranked third</h4>
+            <strong>Suez University</strong>
+            <p>Graduation project: comprehensive oilfield development plan. First place at EAGE IPGC 2018 with a Best Presentation award.</p>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RESEARCH ============ -->
+<section class="rig-sec rig-rev" id="research">
+  <div class="rig-shell">
+    <p class="rig-eyebrow">Publications &amp; research</p>
+    <h2 class="rig-h2">Applied research across production,<br>reliability, and energy.</h2>
+    <p class="rig-lede">
+      Peer-reviewed and conference work spanning artificial lift reliability, virtual flow
+      metering, machine-learning production estimation, formation damage, and energy policy.
+    </p>
+
+    <ul class="rig-pubs">
+      <li>
+        <a class="rig-pub" href="https://doi.org/10.3390/en18153943" target="_blank" rel="noopener">
+          <span class="rig-pub-meta">Energies · 2025 · 18(15), 3943 · peer-reviewed</span>
+          <h4>Dual-Level Electric Submersible Pump (ESP) Failure Classification: A Novel Comprehensive Classification Bridging Failure Modes and Root Cause Analysis</h4>
+          <p>A two-step integrated failure modes and root cause (IFMRC) framework that separates failure modes from root causes to improve ESP fault diagnosis and prevention.</p>
+          <p class="rig-pub-authors"><b>M. A. Sobhy</b>, G. M. Hegazy, A. H. El-Banbi · doi.org/10.3390/en18153943</p>
+        </a>
+      </li>
+      <li>
+        <a class="rig-pub" href="https://scholar.google.com.eg/citations?view_op=view_citation&amp;hl=en&amp;user=YRDfA6MAAAAJ&amp;citation_for_view=YRDfA6MAAAAJ:Tyk-4Ss8FVUC" target="_blank" rel="noopener">
+          <span class="rig-pub-meta">Co-authored · virtual flow metering</span>
+          <h4>A Hybrid Physics-ML Framework for Virtual Flow Metering in ESP-Lifted Oil Fields: From Troubleshooting to Robust Deployment</h4>
+          <p>Combines physical pump modelling with machine learning to estimate flow in ESP-lifted wells, taken from troubleshooting through to robust field deployment.</p>
+          <p class="rig-pub-authors">K. Raslan, H. Elnaggar, <b>M. Sobhey</b>, A. Meligi, D. Dah, et al.</p>
+        </a>
+      </li>
+      <li>
+        <a class="rig-pub" href="https://scholar.google.com.eg/citations?view_op=view_citation&amp;hl=en&amp;user=YRDfA6MAAAAJ&amp;citation_for_view=YRDfA6MAAAAJ:IjCSPb-OGe4C" target="_blank" rel="noopener">
+          <span class="rig-pub-meta">IPTC 2026 · IPTC-25142-MS</span>
+          <h4>Real-Time Estimation of Production Rates in Gas Condensate Wells Using a Machine Learning Model</h4>
+          <p>International Petroleum Technology Conference.</p>
+        </a>
+      </li>
+      <li>
+        <a class="rig-pub" href="https://fount.aucegypt.edu/cgi/viewcontent.cgi?article=3662&amp;context=etds" target="_blank" rel="noopener">
+          <span class="rig-pub-meta">M.Sc. thesis · AUC · full text</span>
+          <h4>Detecting Electrical Submersible Pump (ESP) Failures and Estimating Run Life Using Artificial Neural Networks</h4>
+          <p>Neural-network approach to ESP failure detection and run-life estimation, built on ESP databases, workover records and DIFA failure investigation reports.</p>
+        </a>
+      </li>
+      <li>
+        <a class="rig-pub" href="https://scholar.google.com/citations?user=YRDfA6MAAAAJ&hl=en" target="_blank" rel="noopener">
+          <span class="rig-pub-meta">2023 · research presentation</span>
+          <h4>A Review on Clay Reactivity with Brine and Its Impact on Fluid Flow Through Porous Media</h4>
+          <p>Oil and gas research presentation on formation damage mechanisms.</p>
+        </a>
+      </li>
+      <li>
+        <a class="rig-pub" href="https://scholar.google.com/citations?user=YRDfA6MAAAAJ&hl=en" target="_blank" rel="noopener">
+          <span class="rig-pub-meta">GAPP School · 2022 · public policy</span>
+          <h4>Localization of Climate Change Mitigation and Adaptation Efforts</h4>
+          <p>The Public Policy Hub, The American University in Cairo.</p>
+        </a>
+      </li>
+    </ul>
+
+    <h3 style="font-family:var(--rig-display);font-size:1.15rem;margin:2.6rem 0 0;letter-spacing:.02em">Certifications &amp; training</h3>
+    <div class="rig-certs">
+      <div class="rig-cert"><b>IADC WellSharp</b><span>Supervisor, Surface · valid to Dec 2027</span></div>
+      <div class="rig-cert"><b>IWCF Well Control Level 4</b><span>Surface BOP</span></div>
+      <div class="rig-cert"><b>IADC RigPass</b><span>GTSTC · lifetime validity</span></div>
+      <div class="rig-cert"><b>API Rig Audit &amp; Inspection</b><span>RigShield training</span></div>
+      <div class="rig-cert"><b>Machine Learning</b><span>MITx professional certificate · edX</span></div>
+      <div class="rig-cert"><b>Machine Learning</b><span>Stanford University · Coursera</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<section class="rig-sec rig-rev" id="contact">
+  <div class="rig-shell">
+    <p class="rig-eyebrow">Contact</p>
+    <h2 class="rig-h2">Let's collaborate.</h2>
+    <p class="rig-lede">
+      Digital oilfield transformation, drilling analytics, operations technology, and applied
+      petroleum-engineering research.
+    </p>
+    <div class="rig-contact">
+      <a class="rig-link" href="mailto:mostafa-sobhy@aucegypt.edu">
+        <span>Email</span><b>mostafa-sobhy@aucegypt.edu</b>
+      </a>
+      <a class="rig-link" href="https://www.linkedin.com/in/mostafasobhey/" target="_blank" rel="noopener">
+        <span>LinkedIn</span><b>in/mostafasobhey</b>
+      </a>
+      <a class="rig-link" href="https://scholar.google.com/citations?user=YRDfA6MAAAAJ&hl=en" target="_blank" rel="noopener">
+        <span>Google Scholar</span><b>Publications &amp; citations</b>
+      </a>
+      <a class="rig-link" href="https://github.com/MostafaSobhey" target="_blank" rel="noopener">
+        <span>GitHub</span><b>MostafaSobhey</b>
+      </a>
+      <a class="rig-link" href="https://www.researchgate.net/profile/Mostafa-Sobhy-4" target="_blank" rel="noopener">
+        <span>ResearchGate</span><b>Research profile</b>
+      </a>
+      <a class="rig-link" href="tel:+201270510375">
+        <span>Phone</span><b>+20 127 051 0375</b>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer class="rig-foot">
+  <div class="rig-shell rig-foot-in">
+    <span>Designed &amp; engineered by Mostafa A. Sobhy · New Cairo, Egypt</span>
+    <span>Public preview build · <a href="#demo">Engineering review required</a></span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- helpers ---------- */
+  function num(id){
+    var el = document.getElementById(id);
+    var v = el ? Number(el.value) : 0;
+    return Number.isFinite(v) ? Math.max(0, v) : 0;
+  }
+  function fmt(v, d){
+    if(!Number.isFinite(v)) return "—";
+    return v.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+  }
+  function set(id, v, d){
+    var el = document.getElementById(id);
+    if(el) el.textContent = fmt(v, d === undefined ? 0 : d);
+  }
+
+  /* ---------- well-control model ----------
+     Same formulas as the production calculation layer.
+     Errors gate the dashboard rather than being shown beside
+     numbers that already rendered.
+  ------------------------------------------- */
+  function model(i){
+    var errors = [];
+    if(!i.mw || !i.tvd) errors.push("Current mud weight and TVD are required.");
+
+    var hp   = 0.052 * i.mw * i.tvd;
+    var kmw  = i.tvd ? i.mw + i.sidpp / (0.052 * i.tvd) : 0;
+    var sbhp = hp + i.sidpp;
+    var dbhp = sbhp + i.apl;
+    var icp  = i.scr + i.sidpp;
+    var fcp  = i.mw ? (kmw / i.mw) * i.scr : 0;
+    var im   = Math.max(0, (i.maxmw - i.mw) * 0.052 * i.shoe);
+    var fm   = Math.max(0, (i.maxmw - kmw) * 0.052 * i.shoe);
+
+    if(i.maxmw && i.maxmw < kmw){
+      errors.push("Kill mud weight exceeds the entered maximum allowable mud weight. Review the casing shoe and LOT/FIT basis before proceeding.");
+    }
+    if(i.shoe && i.tvd && i.shoe > i.tvd){
+      errors.push("Casing shoe TVD is deeper than well TVD. Check the depth references.");
+    }
+    return {errors:errors,hp:hp,kmw:kmw,sbhp:sbhp,dbhp:dbhp,icp:icp,fcp:fcp,im:im,fm:fm};
+  }
+
+  var latest = null;
+
+  function calculate(){
+    var input = {
+      mw:num("wc-mw"), tvd:num("wc-tvd"), sidpp:num("wc-sidpp"),
+      shoe:num("wc-shoe"), maxmw:num("wc-maxmw"),
+      scr:num("wc-scr"), apl:num("wc-apl")
+    };
+    var r = model(input);
+    latest = r;
+    latest.input = input;
+
+    set("r-hp", r.hp);      set("r-kmw", r.kmw, 2);
+    set("r-sbhp", r.sbhp);  set("r-dbhp", r.dbhp);
+    set("r-imaasp", r.im);  set("r-fmaasp", r.fm);
+    set("r-icp", r.icp);    set("r-fcp", r.fcp);
+
+    // MAASP margin
+    var pct = r.im > 0 ? Math.max(0, Math.min(100, (r.fm / r.im) * 100)) : 0;
+    var fill = document.getElementById("margin-fill");
+    var note = document.getElementById("margin-note");
+    document.getElementById("margin-pct").textContent = r.im > 0 ? pct.toFixed(0) + "%" : "—";
+    fill.style.width = pct + "%";
+    if(pct < 50){
+      fill.classList.add("is-warn");
+      note.textContent = "Margin is closing. Killing this well consumes most of the available shoe strength.";
+    } else {
+      fill.classList.remove("is-warn");
+      note.textContent = "Final MAASP as a fraction of initial MAASP.";
+    }
+
+    // Errors gate the dashboard
+    var status = document.getElementById("wc-status");
+    var results = document.getElementById("wc-results");
+    status.textContent = "";
+    if(r.errors.length){
+      status.className = "rig-status is-warn";
+      r.errors.forEach(function(m){
+        var s = document.createElement("span");
+        s.textContent = "▲ " + m;
+        status.appendChild(s);
+      });
+      results.querySelectorAll(".rig-res").forEach(function(c){ c.classList.add("is-stale"); });
+    } else {
+      status.className = "rig-status";
+      status.textContent = "Inputs checked. Results are ready for engineering review.";
+      results.querySelectorAll(".rig-res").forEach(function(c){ c.classList.remove("is-stale"); });
+    }
+  }
+
+  var form = document.getElementById("wc-form");
+  if(form){
+    form.addEventListener("input", calculate);
+    form.addEventListener("submit", function(e){ e.preventDefault(); calculate(); });
+  }
+  calculate();
+
+  /* ---------- copy summary (carries warnings) ---------- */
+  document.getElementById("btn-copy").addEventListener("click", function(){
+    if(!latest) return;
+    var L = [
+      "RigOps Field Suite — Well-Control Quick Math",
+      "Inputs: MW " + latest.input.mw + " ppg · TVD " + latest.input.tvd + " ft · SIDPP " + latest.input.sidpp + " psi · Shoe " + latest.input.shoe + " ft",
+      "",
+      "Hydrostatic:   " + fmt(latest.hp,0) + " psi",
+      "Kill mud wt:   " + fmt(latest.kmw,2) + " ppg",
+      "Static BHP:    " + fmt(latest.sbhp,0) + " psi",
+      "Dynamic BHP:   " + fmt(latest.dbhp,0) + " psi",
+      "Initial MAASP: " + fmt(latest.im,0) + " psi",
+      "Final MAASP:   " + fmt(latest.fm,0) + " psi",
+      "ICP / FCP:     " + fmt(latest.icp,0) + " / " + fmt(latest.fcp,0) + " psi"
+    ];
+    if(latest.errors.length){
+      L.push("", "!! WARNINGS — RESULTS NOT VALIDATED !!");
+      latest.errors.forEach(function(m){ L.push("   - " + m); });
+    }
+    L.push("", "Decision support only. Verify inputs, units, the approved well program,");
+    L.push("equipment limits and barriers, and obtain responsible supervisor approval.");
+    var text = L.join("\n");
+    var btn = this;
+    var restore = function(){ btn.textContent = "Copy summary"; };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){
+        btn.textContent = "Copied";
+        setTimeout(restore, 1500);
+      }, function(){ window.prompt("Copy this summary:", text); });
+    } else {
+      window.prompt("Copy this summary:", text);
+    }
+  });
+
+  /* ---------- reset ---------- */
+  var DEFAULTS = {"wc-mw":10.5,"wc-tvd":11550,"wc-sidpp":240,"wc-shoe":6000,"wc-maxmw":14.2,"wc-scr":500,"wc-apl":250};
+  document.getElementById("btn-reset").addEventListener("click", function(){
+    Object.keys(DEFAULTS).forEach(function(k){ document.getElementById(k).value = DEFAULTS[k]; });
+    calculate();
+  });
+
+  /* ---------- kick scenario (the teaser moment) ---------- */
+  var playing = false, timer = null;
+  var playBtn = document.getElementById("btn-play");
+  var modeTag = document.getElementById("wc-mode");
+
+  function stopScenario(){
+    playing = false;
+    if(timer) clearInterval(timer);
+    timer = null;
+    playBtn.textContent = "▶ Play kick scenario";
+    playBtn.classList.remove("is-live");
+    modeTag.textContent = "Live";
+  }
+
+  playBtn.addEventListener("click", function(){
+    if(playing){ stopScenario(); return; }
+    playing = true;
+    playBtn.textContent = "■ Stop";
+    playBtn.classList.add("is-live");
+    modeTag.textContent = "Simulating influx";
+
+    var sidppEl = document.getElementById("wc-sidpp");
+    var mwEl = document.getElementById("wc-mw");
+    mwEl.value = 10.5;
+    sidppEl.value = 0;
+    calculate();
+
+    var step = 0;
+    var TOTAL = 60;              // frames
+    var PEAK = 1250;             // psi SIDPP at peak — drains MAASP margin 100% -> ~44%
+    timer = setInterval(function(){
+      step += 1;
+      var t = step / TOTAL;
+      // ease-out influx build
+      var eased = 1 - Math.pow(1 - t, 2.4);
+      sidppEl.value = Math.round(PEAK * eased);
+      calculate();
+      if(step >= TOTAL){
+        clearInterval(timer);
+        timer = null;
+        setTimeout(function(){
+          if(!playing) return;
+          modeTag.textContent = "Shut in · stabilised";
+          playBtn.textContent = "▶ Replay kick scenario";
+          playBtn.classList.remove("is-live");
+          playing = false;
+        }, 400);
+      }
+    }, reduced ? 10 : 55);
+  });
+
+  /* ---------- hero count-up ---------- */
+  function countUp(el){
+    var target = parseFloat(el.getAttribute("data-count"));
+    var dec = parseInt(el.getAttribute("data-dec") || "0", 10);
+    var suffix = el.getAttribute("data-suffix") || "";
+    if(reduced){ el.textContent = fmt(target, dec) + suffix; return; }
+    var start = null, DUR = 1400;
+    function frame(ts){
+      if(!start) start = ts;
+      var p = Math.min(1, (ts - start) / DUR);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(target * eased, dec) + suffix;
+      if(p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------- reveal on scroll ---------- */
+  var revealTargets = document.querySelectorAll(".rig-rev");
+  if("IntersectionObserver" in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          e.target.classList.add("is-in");
+          e.target.querySelectorAll("[data-count]").forEach(countUp);
+          io.unobserve(e.target);
+        }
+      });
+    }, {threshold:.12, rootMargin:"0px 0px -60px 0px"});
+    revealTargets.forEach(function(t){ io.observe(t); });
+  } else {
+    revealTargets.forEach(function(t){ t.classList.add("is-in"); });
+  }
+  // hero gauges animate immediately
+  document.querySelectorAll(".rig-console [data-count]").forEach(countUp);
+
+  /* ---------- wellbore spine + depth readout ---------- */
+  var mud = document.getElementById("spine-mud");
+  var bit = document.getElementById("spine-bit");
+  var readout = document.getElementById("depth-readout");
+  var TD = 11550;
+  var ticking = false;
+
+  function onScroll(){
+    var doc = document.documentElement;
+    var max = doc.scrollHeight - window.innerHeight;
+    var p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+    mud.style.height = (p * 100) + "%";
+    bit.style.top = (p * 100) + "%";
+    readout.textContent = "BIT @ " + Math.round(p * TD).toLocaleString("en-US") + " ft MD";
+    ticking = false;
+  }
+  window.addEventListener("scroll", function(){
+    if(!ticking){ window.requestAnimationFrame(onScroll); ticking = true; }
+  }, {passive:true});
+  onScroll();
+
+
+  /* ---------- console clock ---------- */
+  var clock = document.getElementById("console-clock");
+  function tick(){
+    var d = new Date();
+    clock.textContent = String(d.getHours()).padStart(2,"0") + ":" +
+                        String(d.getMinutes()).padStart(2,"0") + ":" +
+                        String(d.getSeconds()).padStart(2,"0");
+  }
+  tick(); setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>
