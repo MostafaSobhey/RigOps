@@ -3,7 +3,7 @@
 A single-page public preview of **RigOps Field Suite**, a drilling, completion, and workover
 decision workspace designed and engineered by **Mostafa A. Sobhy**.
 
-**[▶ View the live preview](https://REPLACE-WITH-YOUR-LIVE-URL/)**
+**[▶ View the live preview](https://rigops.mostafa-sobhy.workers.dev/#ai)**
 
 ---
 
@@ -39,7 +39,7 @@ exposing the full system.
 No build step, no dependencies, no server.
 
 ```bash
-open index.html
+[open index.html](https://rigops.mostafa-sobhy.workers.dev/#ai)
 ```
 
 Everything is inlined into one file, so it works opened straight from disk — unlike the full
