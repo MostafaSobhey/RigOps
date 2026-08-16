@@ -3,7 +3,7 @@
 A single-page public preview of **RigOps Field Suite**, a drilling, completion, and workover
 decision workspace designed and engineered by **Mostafa A. Sobhy**.
 
-**[▶ View the live preview](https://rigops.mostafa-sobhy.workers.dev/#ai)**
+**[▶ View the live preview](https://rigops.mostafa-sobhy.workers.dev/#top)**
 
 ---
 
