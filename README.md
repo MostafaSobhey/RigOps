@@ -3,7 +3,7 @@
 A single-page public preview of **RigOps Field Suite**, a drilling, completion, and workover
 decision workspace designed and engineered by **Mostafa A. Sobhy**.
 
-**[▶ View the live preview](https://rigops.mostafa-sobhy.workers.dev/#top)**
+**[▶ View the live preview](https://rigops.mostafa-sobhy.workers.dev/)**
 
 ---
 
@@ -39,21 +39,19 @@ exposing the full system.
 No build step, no dependencies, no server.
 
 ```bash
-[open index.html](https://rigops.mostafa-sobhy.workers.dev/#ai)
+open index.html
 ```
 
 Everything is inlined into one file, so it works opened straight from disk — unlike the full
 suite, which needs a local server for JavaScript modules.
 
-## Before you publish — required
+## Before you publish
 
-`index.html` contains **four placeholders** reading `REPLACE-WITH-YOUR-LIVE-URL`. Replace all
-four with your real address once you have it, plus the link at the top of this README.
-
-LinkedIn will not render a preview image from a relative path, so these must be absolute
-`https://` URLs. After deploying, run your URL through **linkedin.com/post-inspector** to check
-the card and force LinkedIn to refresh its cache. Do this *before* posting — a published post
-keeps its preview permanently.
+The live URL is set to `https://rigops.mostafa-sobhy.workers.dev` throughout the Open Graph
+tags. If you later move to a custom domain, update the four `og:`/`twitter:` tags in
+`index.html` and the link at the top of this README, then re-run the URL through
+**linkedin.com/post-inspector** so LinkedIn refreshes its cached preview. Always inspect before
+posting — a published post keeps its preview image permanently.
 
 ## Deploying
 
